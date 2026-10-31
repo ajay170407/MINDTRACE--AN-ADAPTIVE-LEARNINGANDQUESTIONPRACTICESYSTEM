@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile - MINDTRACE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="{{ url_for('courses') }}" class="nav-brand">MINDTRACE</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
+            <li><a href="{{ url_for('history') }}" class="nav-link">History</a></li>
+            <li><a href="{{ url_for('database') }}" class="nav-link">Database</a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-link active">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}" class="nav-btn">Log Out</a></li>
+        </ul>
+    </header>
+
+    <main class="container">
+        <div style="max-width: 680px; margin: 1rem auto;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-container">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="auth-card" style="padding: 2.5rem;">
+                <div class="auth-header" style="text-align: left; margin-bottom: 2rem;">
+                    <h1>Student Profile</h1>
+                    <p>Manage your academic information and personal contact details.</p>
+                </div>
+
+                <form action="{{ url_for('profile') }}" method="POST">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Full Name</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ student['name'] or '' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address (Locked)</label>
+                        <input type="email" id="email" class="form-control" value="{{ student['email'] or '' }}" disabled style="opacity: 0.7; cursor: not-allowed;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Phone Number (with Country Code)</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" placeholder="+91 9876543210" value="{{ student['phone'] or '' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="college">College / University</label>
+                        <input type="text" id="college" name="college" class="form-control" placeholder="e.g. Anna University / IIT Madras" value="{{ student['college'] or '' }}">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="department">Department</label>
+                            <input type="text" id="department" name="department" class="form-control" placeholder="Computer Science & Eng." value="{{ student['department'] or '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="study_year">Year of Study</label>
+                            <select id="study_year" name="study_year" class="form-control">
+                                <option value="">Select Year</option>
+                                <option value="1st Year" {% if (student['study_year'] or student['year_of_study']) == '1st Year' %}selected{% endif %}>1st Year</option>
+                                <option value="2nd Year" {% if (student['study_year'] or student['year_of_study']) == '2nd Year' %}selected{% endif %}>2nd Year</option>
+                                <option value="3rd Year" {% if (student['study_year'] or student['year_of_study']) == '3rd Year' %}selected{% endif %}>3rd Year</option>
+                                <option value="4th Year" {% if (student['study_year'] or student['year_of_study']) == '4th Year' %}selected{% endif %}>4th Year</option>
+                                <option value="Postgraduate" {% if (student['study_year'] or student['year_of_study']) == 'Postgraduate' %}selected{% endif %}>Postgraduate</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="address">Address</label>
+                        <textarea id="address" name="address" class="form-control" rows="3" placeholder="Enter student residential or campus address">{{ student['address'] or '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="margin-top: 1rem;">Save Profile Changes</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; {{ current_year }} MINDTRACE Adaptive Learning System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

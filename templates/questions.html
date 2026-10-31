@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.code }} - {{ unit }} (1-Mark Practice) - MINDTRACE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="{{ url_for('courses') }}" class="nav-brand">MINDTRACE</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
+            <li><a href="{{ url_for('history') }}" class="nav-link">History</a></li>
+            <li><a href="{{ url_for('database') }}" class="nav-link">Database</a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-link">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}" class="nav-btn">Log Out</a></li>
+        </ul>
+    </header>
+
+    <main class="container">
+        <!-- Practice Header Bar (Fixed 1-Mark Question Type) -->
+        <div class="auth-card" style="padding: 1.25rem 1.75rem; margin-bottom: 1.75rem; max-width: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                        <span class="course-code-badge">{{ course.code }}</span>
+                        <span class="meta-pill">{{ unit }}</span>
+                        <span class="pdf-badge found" style="font-weight: 700;">Fixed Type: 1-Mark Questions</span>
+                    </div>
+                    <h1 style="font-size: 1.4rem; font-weight: 800;">{{ course.name }}</h1>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <a href="{{ url_for('course_units', course_id=course.id) }}" class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                        Change Unit
+                    </a>
+                    <a href="{{ url_for('courses') }}" class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                        All Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if not questions %}
+        <div class="auth-card" style="text-align: center; padding: 3rem;">
+            <h2>No 1-mark questions were found for this unit.</h2>
+            <p style="color: var(--text-secondary); margin: 1rem 0;">Please check that {{ course.pdf }} contains formatted 1-mark questions or select another unit.</p>
+            <a href="{{ url_for('course_units', course_id=course.id) }}" class="btn-primary" style="display: inline-block; width: auto; padding: 0.75rem 2rem;">
+                Back to Unit Selection
+            </a>
+        </div>
+        {% else %}
+        <!-- Interactive Question Practice (One Question at a Time) -->
+        <div class="practice-container">
+            <!-- Progress Bar -->
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">
+                    <span>Question <strong id="current-q-num" style="color: #fff;">1</strong> of <strong>{{ questions|length }}</strong></span>
+                    <span id="answered-indicator" style="color: var(--accent-cyan); font-weight: 600;">0 of {{ questions|length }} Answered</span>
+                </div>
+                <div style="width: 100%; height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;">
+                    <div id="progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+
+            <!-- Question Card Panes -->
+            {% for q in questions %}
+            {% set question_loop = loop %}
+            <div class="question-card question-pane" id="pane-{{ question_loop.index0 }}" style="{% if not question_loop.first %}display: none;{% endif %}">
+                <div class="question-header">
+                    <div class="question-meta">
+                        <span class="meta-pill">{{ unit }}</span>
+                        <span class="meta-pill" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan);">1 Mark Question</span>
+                    </div>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Q#{{ question_loop.index }}</span>
+                </div>
+
+                <div class="question-text">{{ q.question }}</div>
+
+                {% if q.options and q.options|length > 0 %}
+                    <div class="options-list">
+                        {% for opt in q.options %}
+                            {% set opt_char = opt[:1]|upper %}
+                            <div class="option-item" onclick="selectOption('{{ q.id }}', '{{ opt_char }}', this, {{ question_loop.index0 }})">
+                                <span style="font-weight: 700; width: 28px; color: var(--accent-cyan);">{{ opt_char }}</span>
+                                <span style="flex: 1;">{{ opt[2:] if opt[1:2] in [')', '.'] else opt }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label class="form-label">Type your answer:</label>
+                        <input type="text" class="form-control" placeholder="Enter answer..." oninput="recordInputAnswer('{{ q.id }}', this.value, {{ question_loop.index0 }})">
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <!-- Navigation Controls -->
+            <div class="practice-nav">
+                <button type="button" id="prev-btn" class="btn-secondary" onclick="stepQuestion(-1)" disabled>
+                    &larr; Previous Question
+                </button>
+
+                <button type="button" id="next-btn" class="btn-primary" style="width: auto; padding: 0.75rem 2rem; margin-top: 0;" onclick="stepQuestion(1)">
+                    Next Question &rarr;
+                </button>
+
+                <button type="button" id="submit-btn" class="btn-primary" style="display: none; width: auto; padding: 0.75rem 2rem; margin-top: 0; background: linear-gradient(135deg, var(--accent-success), var(--accent-blue));" onclick="submitPractice()">
+                    Finish Practice & View Results &rarr;
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>&copy; {{ current_year }} MINDTRACE Adaptive Learning System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const questions = {{ questions|tojson }};
+        const courseId = {{ course.id }};
+        const unitName = "{{ unit }}";
+        const studentAnswers = {};
+        let currentIndex = 0;
+
+        function updateDisplay() {
+            document.querySelectorAll('.question-pane').forEach((p, idx) => {
+                p.style.display = idx === currentIndex ? 'block' : 'none';
+            });
+
+            document.getElementById('current-q-num').textContent = currentIndex + 1;
+            document.getElementById('prev-btn').disabled = (currentIndex === 0);
+
+            const isLast = (currentIndex === questions.length - 1);
+            document.getElementById('next-btn').style.display = isLast ? 'none' : 'inline-block';
+            document.getElementById('submit-btn').style.display = isLast ? 'inline-block' : 'none';
+
+            // Update Progress
+            const answeredCount = Object.keys(studentAnswers).filter(k => studentAnswers[k].trim() !== '').length;
+            document.getElementById('answered-indicator').textContent = `${answeredCount} of ${questions.length} Answered`;
+            const pct = Math.round((answeredCount / questions.length) * 100);
+            document.getElementById('progress-bar-fill').style.width = pct + '%';
+        }
+
+        function stepQuestion(delta) {
+            const nextIdx = currentIndex + delta;
+            if (nextIdx >= 0 && nextIdx < questions.length) {
+                currentIndex = nextIdx;
+                updateDisplay();
+            }
+        }
+
+        function selectOption(qId, optChar, element, paneIdx) {
+            studentAnswers[qId] = optChar;
+            const pane = document.getElementById(`pane-${paneIdx}`);
+            pane.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            updateDisplay();
+        }
+
+        function recordInputAnswer(qId, val, paneIdx) {
+            studentAnswers[qId] = val.trim();
+            updateDisplay();
+        }
+
+        async function submitPractice() {
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.textContent = "Grading & Diagnosing...";
+
+            try {
+                const response = await fetch("{{ url_for('submit_attempt') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "same-origin",
+                    body: JSON.stringify({
+                        course_id: courseId,
+                        unit: unitName,
+                        answers: studentAnswers,
+                        questions: questions
+                    })
+                });
+
+                if (!response.ok) {
+                    let errorMsg = `Server error (${response.status})`;
+                    try {
+                        const errData = await response.json();
+                        if (errData && errData.error) {
+                            errorMsg = errData.error;
+                            if (errData.redirect_url) {
+                                alert(errorMsg);
+                                window.location.href = errData.redirect_url;
+                                return;
+                            }
+                        }
+                    } catch (_) {
+                        const rawText = await response.text();
+                        if (rawText.includes("login") || rawText.includes("<!DOCTYPE") || rawText.includes("<!doctype")) {
+                            alert("Your login session has expired. Redirecting to login page...");
+                            window.location.href = "{{ url_for('login') }}";
+                            return;
+                        }
+                    }
+                    alert("Submission failed: " + errorMsg);
+                    btn.disabled = false;
+                    btn.textContent = "Finish Practice & View Results →";
+                    return;
+                }
+
+                const res = await response.json();
+                if (res.success && res.redirect_url) {
+                    window.location.href = res.redirect_url;
+                } else {
+                    alert("Submission error: " + (res.error || "Could not record attempt."));
+                    btn.disabled = false;
+                    btn.textContent = "Finish Practice & View Results →";
+                }
+            } catch (err) {
+                alert("Submission error: " + err.message);
+                btn.disabled = false;
+                btn.textContent = "Finish Practice & View Results →";
+            }
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>

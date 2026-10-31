@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Results - {{ attempt.course }} - MINDTRACE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="{{ url_for('courses') }}" class="nav-brand">MINDTRACE</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
+            <li><a href="{{ url_for('history') }}" class="nav-link">History</a></li>
+            <li><a href="{{ url_for('database') }}" class="nav-link">Database</a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-link">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}" class="nav-btn">Log Out</a></li>
+        </ul>
+    </header>
+
+    <main class="container">
+        <!-- Results Hero Banner -->
+        <div class="auth-card" style="max-width: 900px; margin: 0 auto 2rem; border-color: rgba(0, 229, 255, 0.4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+                <div>
+                    <span class="meta-pill" style="margin-bottom: 0.5rem; display: inline-block;">Attempt #{{ attempt.id }}</span>
+                    <span class="pdf-badge found" style="margin-left: 0.5rem;">1-Mark Assessment</span>
+                    <h1 style="font-size: 1.75rem; font-weight: 800; margin-top: 0.25rem;">{{ attempt.course }}</h1>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                        Student: <strong style="color: #fff;">{{ student_name }}</strong> • {{ attempt.unit }} • Completed on {{ attempt.created_at }}
+                    </p>
+                </div>
+
+                <div style="text-align: right; background: rgba(0, 0, 0, 0.3); padding: 1.25rem 2rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div style="font-size: 2.75rem; font-weight: 800; color: {% if attempt.percentage >= 70 %}var(--accent-success){% elif attempt.percentage >= 40 %}var(--accent-warning){% else %}var(--accent-danger){% endif %};">
+                        {{ attempt.percentage }}%
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">
+                        Score: {{ attempt.correct_answers }} / {{ attempt.total_questions }} Marks
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1.25rem;">
+                <div style="background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: var(--radius-sm); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Total Questions</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: #fff;">{{ attempt.total_questions }}</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: var(--radius-sm); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Attempted</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-blue);">{{ attempt.attempted_questions }}</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: var(--radius-sm); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Correct</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-success);">{{ attempt.correct_answers }}</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: var(--radius-sm); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Incorrect</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-danger);">{{ attempt.incorrect_answers }}</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: var(--radius-sm); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Unanswered</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-muted);">{{ attempt.unanswered_questions }}</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                <a href="{{ url_for('questions', course_id=1, unit=attempt.unit) }}" class="btn-primary" style="width: auto; padding: 0.65rem 1.5rem; margin-top: 0;">
+                    Practice Again
+                </a>
+                <a href="{{ url_for('courses') }}" class="btn-secondary">
+                    Back to Courses
+                </a>
+                <a href="{{ url_for('history') }}" class="btn-secondary">
+                    View History
+                </a>
+            </div>
+        </div>
+
+        <!-- Detailed Question Diagnosis -->
+        <div style="max-width: 900px; margin: 0 auto;">
+            <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 1.25rem;">
+                Question Breakdown & Misconception Explanations
+            </h2>
+
+            {% for item in evaluation %}
+            <div class="question-card" style="border-left: 4px solid {% if item.is_correct %}var(--accent-success){% elif item.status == 'Unanswered' %}var(--text-muted){% else %}var(--accent-danger){% endif %};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Question {{ loop.index }} (1 Mark)</span>
+                    {% if item.is_correct %}
+                        <span class="meta-pill" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success);">✔ Correct (+1)</span>
+                    {% elif item.status == 'Unanswered' %}
+                        <span class="meta-pill" style="background: rgba(255, 255, 255, 0.08); color: var(--text-muted);">Not Answered (0)</span>
+                    {% else %}
+                        <span class="meta-pill" style="background: rgba(239, 68, 68, 0.2); color: var(--accent-danger);">✖ Misconception (0)</span>
+                    {% endif %}
+                </div>
+
+                <div style="font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem;">
+                    {{ item.question }}
+                </div>
+
+                <div style="background: var(--bg-secondary); padding: 1rem 1.25rem; border-radius: var(--radius-md); font-size: 0.9rem; margin-bottom: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div style="margin-bottom: 0.4rem;">
+                        <strong style="color: var(--text-secondary);">Your Answer:</strong>
+                        <span style="color: {% if item.is_correct %}var(--accent-success){% elif item.status == 'Unanswered' %}var(--text-muted){% else %}var(--accent-danger){% endif %}; font-weight: 700;">
+                            {{ item.student_answer }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <strong style="color: var(--text-secondary);">Verified Correct Answer:</strong>
+                        <span style="color: var(--accent-cyan); font-weight: 700;">
+                            Option {{ item.correct_answer }}
+                        </span>
+                    </div>
+                </div>
+
+                <div style="background: rgba(138, 43, 226, 0.1); border: 1px solid rgba(138, 43, 226, 0.3); padding: 0.85rem 1.1rem; border-radius: var(--radius-md); font-size: 0.85rem;">
+                    <strong style="color: var(--accent-cyan);">Concept & Misconception Diagnosis:</strong>
+                    <p style="margin-top: 0.35rem; color: #E2E8F0;">{{ item.explanation }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; {{ current_year }} MINDTRACE Adaptive Learning System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Select Unit - ' + course.name if select_unit_mode else 'Course Syllabus Modules' }} - MINDTRACE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="{{ url_for('courses') }}" class="nav-brand">MINDTRACE</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('courses') }}" class="nav-link active">Courses</a></li>
+            <li><a href="{{ url_for('history') }}" class="nav-link">History</a></li>
+            <li><a href="{{ url_for('database') }}" class="nav-link">Database</a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-link">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}" class="nav-btn">Log Out</a></li>
+        </ul>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if select_unit_mode %}
+        <!-- UNIT SELECTION PAGE (STRICTLY 1-MARK ONLY) -->
+        <div style="margin-bottom: 2rem;">
+            <a href="{{ url_for('courses') }}" class="btn-secondary" style="margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                &larr; Back to Courses
+            </a>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <span class="course-code-badge">{{ course.code }}</span>
+                    <span class="pdf-badge found" style="margin-left: 0.5rem;">Fixed Type: 1-Mark Questions</span>
+                    <h1 style="font-size: 2rem; font-weight: 800; margin-top: 0.5rem;">{{ course.name }}</h1>
+                    <p style="color: var(--text-secondary); margin-top: 0.25rem;">
+                        Select a Unit to practise strictly 1-mark conceptual multiple-choice questions extracted from {{ course.pdf }}.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="course-grid">
+            {% for u in units %}
+            <div class="course-card">
+                <div>
+                    <span class="course-code-badge" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan);">
+                        {{ u.key }}
+                    </span>
+                    <h2 class="course-title" style="font-size: 1.15rem; margin-top: 0.5rem;">{{ u.full_name }}</h2>
+                    <p class="course-desc">
+                        1-Mark Multiple-Choice Questions with verified answer keys & misconceptions diagnosis.
+                    </p>
+                </div>
+
+                <div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.75rem;">
+                        Available: <strong style="color: var(--accent-cyan);">{{ u.question_count }} Questions (1-Mark)</strong>
+                    </div>
+
+                    <form action="{{ url_for('questions') }}" method="GET">
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <input type="hidden" name="unit" value="{{ u.key }}">
+
+                        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem;">
+                            <label class="form-label" style="font-size: 0.8rem; margin-bottom: 0; white-space: nowrap;">Questions to Practise:</label>
+                            <select name="limit" class="form-control" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">
+                                <option value="5">5 Questions</option>
+                                <option value="10" selected>10 Questions</option>
+                                <option value="15">15 Questions</option>
+                                <option value="20">All 20 Questions</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="margin-top: 0;">
+                            Start Unit Practice (1-Mark)
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- SIX COURSES CATALOG -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">Engineering Course Syllabi</h1>
+                <p style="color: var(--text-secondary); margin-top: 0.25rem;">
+                    Practise strictly 1-mark questions filtered by unit with instant diagnostic misconceptions feedback.
+                </p>
+            </div>
+            <a href="{{ url_for('history') }}" class="btn-secondary">View Past Attempts</a>
+        </div>
+
+        <div class="course-grid">
+            {% for course in courses %}
+            <div class="course-card">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span class="course-code-badge">{{ course.code }}</span>
+                        {% if course.pdf_present %}
+                            <span class="pdf-badge found" title="{{ course.pdf }} verified in question_pdfs/">● {{ course.indexed_status }}</span>
+                        {% else %}
+                            <span class="pdf-badge missing" title="PDF missing in question_pdfs/{{ course.pdf }}">▲ PDF Unindexed</span>
+                        {% endif %}
+                    </div>
+                    <h2 class="course-title">{{ course.name }}</h2>
+                    <p class="course-desc">{{ course.description }}</p>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.75rem;">
+                        <span>Question Type: <strong style="color: var(--accent-cyan);">1-Mark Only</strong></span>
+                        <span>Syllabus: <strong>5 Units</strong></span>
+                    </div>
+
+                    <a href="{{ url_for('course_units', course_id=course.id) }}" class="btn-primary" style="display: block; text-align: center; text-decoration: none; margin-top: 0;">
+                        Select Unit (1-Mark Practice) &rarr;
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Feedback Card -->
+        <div class="auth-card" style="margin-top: 3.5rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Student Learning Feedback</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem;">Rate your 1-mark practice questions and misconception detection experience.</p>
+            <form action="{{ url_for('feedback') }}" method="POST">
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                    <label class="form-label" style="margin-bottom: 0;">Rating (1 to 5):</label>
+                    <select name="rating" class="form-control" style="width: 140px;" required>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Fair</option>
+                        <option value="1">1 - Poor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <textarea name="message" class="form-control" rows="2" placeholder="Optional comments, question feedback, or suggestions..."></textarea>
+                </div>
+                <button type="submit" class="btn-secondary">Submit Feedback</button>
+            </form>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>&copy; {{ current_year }} MINDTRACE Adaptive Learning System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

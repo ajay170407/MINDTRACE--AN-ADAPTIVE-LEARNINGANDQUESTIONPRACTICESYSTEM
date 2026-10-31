@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Dashboard - MINDTRACE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="{{ url_for('courses') }}" class="nav-brand">MINDTRACE</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
+            <li><a href="{{ url_for('history') }}" class="nav-link">History</a></li>
+            <li><a href="{{ url_for('database') }}" class="nav-link active">Database</a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-link">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}" class="nav-btn">Log Out</a></li>
+        </ul>
+    </header>
+
+    <main class="container">
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2rem; font-weight: 800;">SQLite Database Transparency & Student Dashboard</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Secure overview of your authenticated student record, 1-mark practice attempts, and verified SQLite schema.
+            </p>
+        </div>
+
+        <!-- Database Health Banner -->
+        <div class="auth-card" style="max-width: 100%; margin-bottom: 2rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent-cyan);">
+                ⚡ SQLite System Diagnostics
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+                <div style="background: var(--bg-secondary); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                    <span style="color: var(--text-secondary); display: block; font-size: 0.8rem;">Database Path:</span>
+                    <code style="color: #67E8F9; word-break: break-all;">{{ db_path }}</code>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                    <span style="color: var(--text-secondary); display: block; font-size: 0.8rem;">Verified Schema Tables:</span>
+                    <strong style="color: #fff;">{{ tables|join(', ') }}</strong>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                    <span style="color: var(--text-secondary); display: block; font-size: 0.8rem;">Privacy & Access Control:</span>
+                    <strong style="color: var(--accent-success);">Per-Student Session Filtering Enforced</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Profile Record -->
+        <div class="auth-card" style="max-width: 100%; margin-bottom: 2rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">
+                👤 Your Record in <code>students</code> Table
+            </h3>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Email Address</th>
+                            <th>Verified</th>
+                            <th>College</th>
+                            <th>Department</th>
+                            <th>Study Year</th>
+                            <th>Phone</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>#{{ student['id'] }}</strong></td>
+                            <td>{{ student['name'] }}</td>
+                            <td>{{ student['email'] }}</td>
+                            <td>
+                                <span class="pdf-badge {% if student['verified'] %}found{% else %}missing{% endif %}">
+                                    {{ 'Verified' if student['verified'] else 'Pending' }}
+                                </span>
+                            </td>
+                            <td>{{ student['college'] or '-' }}</td>
+                            <td>{{ student['department'] or '-' }}</td>
+                            <td>{{ student['study_year'] or '-' }}</td>
+                            <td>{{ student['phone'] or '-' }}</td>
+                            <td style="font-size: 0.8rem; color: var(--text-secondary);">{{ student['created_at'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Attempts Table -->
+        <div class="auth-card" style="max-width: 100%; margin-bottom: 2rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">
+                📊 Your 1-Mark Practice Records in <code>attempts</code> Table
+            </h3>
+            {% if not attempts %}
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">No practice attempt rows recorded yet for your account.</p>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Attempt ID</th>
+                                <th>Course</th>
+                                <th>Unit</th>
+                                <th>Marks</th>
+                                <th>Questions</th>
+                                <th>Correct</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in attempts %}
+                            <tr>
+                                <td>#{{ a['id'] }}</td>
+                                <td>{{ a['course'] }}</td>
+                                <td>{{ a['unit'] }}</td>
+                                <td><span class="pdf-badge found" style="font-size: 0.75rem;">1-Mark</span></td>
+                                <td>{{ a['total_questions'] }}</td>
+                                <td>{{ a['correct_answers'] }}</td>
+                                <td>{{ a['score'] }}</td>
+                                <td><strong>{{ a['percentage'] }}%</strong></td>
+                                <td style="font-size: 0.8rem; color: var(--text-secondary);">{{ a['created_at'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Feedback Table -->
+        <div class="auth-card" style="max-width: 100%;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">
+                💬 Your Submissions in <code>feedback</code> Table
+            </h3>
+            {% if not user_feedback %}
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">No feedback submitted yet. You can submit feedback on the Courses page.</p>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Feedback ID</th>
+                                <th>Rating</th>
+                                <th>Comments</th>
+                                <th>Submitted Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in user_feedback %}
+                            <tr>
+                                <td>#{{ f['id'] }}</td>
+                                <td><span style="color: var(--accent-warning);">★</span> {{ f['rating'] }}/5</td>
+                                <td>{{ f['message'] or '(No text comment)' }}</td>
+                                <td style="font-size: 0.8rem; color: var(--text-secondary);">{{ f['created_at'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; {{ current_year }} MINDTRACE Adaptive Learning System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - MINDTRACE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="nav-brand">MINDTRACE</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('logout') }}" class="nav-link">Cancel & Log Out</a></li>
+        </ul>
+    </header>
+
+    <main class="container">
+        <div class="auth-wrapper">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-container">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1>Verify Your Email</h1>
+                    <p>Enter the 6-digit confirmation code sent to <strong>{{ email }}</strong></p>
+                </div>
+
+                {% if dev_otp or dev_code %}
+                <div class="flash-message flash-info" style="margin-bottom: 1.5rem; display: block; text-align: center;">
+                    <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; color: var(--accent-cyan); margin-bottom: 0.25rem;">
+                        [Local Development Verification Mode]
+                    </div>
+                    <div>Your OTP code is: <strong style="font-size: 1.3rem; letter-spacing: 3px; color: #fff;">{{ dev_otp or dev_code }}</strong></div>
+                </div>
+                {% endif %}
+
+                <form action="{{ url_for('email_verify') }}" method="POST">
+                    <div class="form-group">
+                        <label class="form-label" for="otp">6-Digit Verification OTP</label>
+                        <input type="text" id="otp" name="otp" class="form-control" placeholder="123456" maxlength="6" pattern="\d{6}" required autofocus style="text-align: center; font-size: 1.5rem; letter-spacing: 6px;">
+                    </div>
+                    <button type="submit" class="btn-primary">Verify OTP & Continue</button>
+                </form>
+
+                <div class="auth-footer" style="margin-top: 1.75rem;">
+                    Didn't receive a code? <a href="{{ url_for('resend_code') }}">Resend Code</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; {{ current_year }} MINDTRACE Adaptive Learning System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

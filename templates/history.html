@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice History - MINDTRACE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="{{ url_for('courses') }}" class="nav-brand">MINDTRACE</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
+            <li><a href="{{ url_for('history') }}" class="nav-link active">History</a></li>
+            <li><a href="{{ url_for('database') }}" class="nav-link">Database</a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-link">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}" class="nav-btn">Log Out</a></li>
+        </ul>
+    </header>
+
+    <main class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 2rem; font-weight: 800;">Student Practice History</h1>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;">Review your 1-mark question practice sessions, diagnostic scores, and conceptual accuracy.</p>
+            </div>
+            <a href="{{ url_for('courses') }}" class="btn-primary" style="width: auto; padding: 0.65rem 1.5rem; margin-top: 0;">Practise More</a>
+        </div>
+
+        {% if not attempts %}
+        <div class="auth-card" style="text-align: center; padding: 3rem;">
+            <h2>No Practice Attempts Recorded Yet</h2>
+            <p style="color: var(--text-secondary); margin: 1rem 0;">Select a syllabus course and unit to start answering 1-mark questions.</p>
+            <a href="{{ url_for('courses') }}" class="btn-primary" style="display: inline-block; width: auto; padding: 0.75rem 2rem;">Explore Courses</a>
+        </div>
+        {% else %}
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Attempt #</th>
+                            <th>Course Name</th>
+                            <th>Unit</th>
+                            <th>Question Type</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Attempted At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in attempts %}
+                        <tr>
+                            <td><strong>#{{ a['id'] }}</strong></td>
+                            <td>{{ a['course'] or a['course_name'] }}</td>
+                            <td><span class="meta-pill">{{ a['unit'] }}</span></td>
+                            <td><span class="pdf-badge found" style="font-size: 0.75rem;">1-Mark</span></td>
+                            <td><strong>{{ a['correct_answers'] }} / {{ a['total_questions'] }}</strong></td>
+                            <td>
+                                <strong style="color: {% if a['percentage'] >= 70 %}var(--accent-success){% elif a['percentage'] >= 40 %}var(--accent-warning){% else %}var(--accent-danger){% endif %};">
+                                    {{ a['percentage'] }}%
+                                </strong>
+                            </td>
+                            <td style="color: var(--text-secondary); font-size: 0.85rem;">{{ a['created_at'] or a['attempt_date'] }}</td>
+                            <td>
+                                <a href="{{ url_for('result', attempt_id=a['id']) }}" class="btn-secondary" style="padding: 0.35rem 0.8rem; font-size: 0.85rem;">
+                                    View Report
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>&copy; {{ current_year }} MINDTRACE Adaptive Learning System. All rights reserved.</p>
+    </footer>
+</body>
+</html>
